@@ -46,7 +46,7 @@ include_directories(
 ## Build ##
 ###########
 add_library(analog_distance_sensor_to_laserscan
-  src/analog_distance_sensor_to_laserscan_node.cpp
+  src/analog_distance_sensor_to_laserscan_nodelet.cpp
 )
 
 target_link_libraries(analog_distance_sensor_to_laserscan
