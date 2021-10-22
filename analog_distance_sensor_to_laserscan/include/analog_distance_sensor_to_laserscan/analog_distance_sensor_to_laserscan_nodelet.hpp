@@ -25,8 +25,8 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   // ROS Parameters
   std::string ls_frame_id_, lf_frame_id_, rf_frame_id_, rs_frame_id_;
+  int analog_hight_noise_th_;
   double tolerance_;
-  double scan_time_, range_min_, range_max_;
 
   raspicat::LightSensorValues old_msg_;
 
@@ -42,7 +42,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   inline bool checkInvalidValue(int16_t& analog_value)
   {
-    return (analog_value >= 4000) ? false : true;
+    return (analog_value >= analog_hight_noise_th_) ? false : true;
   }
 
   inline auto convertAnalogToMeter(int16_t& analog_value) { return analog_value * 0.001; }
@@ -51,12 +51,12 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
   {
     sensor_msgs::LaserScan scan_msg;
     scan_msg.ranges.push_back(analog_value);
-    // scan_msg.header.frame_id = frame_id;
+    scan_msg.header.frame_id = frame_id;
     return scan_msg;
   }
 
   inline auto publishScan(sensor_msgs::LaserScan ls_scan, sensor_msgs::LaserScan lf_scan,
-                          sensor_msgs::LaserScan rs_scan, sensor_msgs::LaserScan rf_scan)
+                          sensor_msgs::LaserScan rf_scan, sensor_msgs::LaserScan rs_scan)
   {
     ls_pub_.publish(ls_scan);
     lf_pub_.publish(lf_scan);
@@ -64,7 +64,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     rs_pub_.publish(rs_scan);
   }
 
-  inline auto Initpub()
+  void Initpub()
   {
     ls_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("ls_scan", 1);
     lf_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("lf_scan", 1);
@@ -72,13 +72,26 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     rs_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("rs_scan", 1);
   }
 
+  void setRosParam()
+  {
+    getPrivateNodeHandle().param("left_side_usensor_frame_id", ls_frame_id_,
+                                 std::string("left_side_usensor_link"));
+    getPrivateNodeHandle().param("left_front_usensor_frame_id", lf_frame_id_,
+                                 std::string("left_front_usensor_link"));
+    getPrivateNodeHandle().param("right_front_usensor_frame_id", rf_frame_id_,
+                                 std::string("right_front_usensor_link"));
+    getPrivateNodeHandle().param("right_side_usensor_frame_id", rs_frame_id_,
+                                 std::string("right_side_usensor_link"));
+    getPrivateNodeHandle().param("usensor_hight_noise_threshold", analog_hight_noise_th_, 4000);
+  }
+
   virtual void onInit()
   {
     boost::mutex::scoped_lock lock(connect_mutex_);
     ROS_INFO("AnalogDistanceSensorToLaserscan nodelet start........");
-    getPrivateNodeHandle();
 
     Initpub();
+    setRosParam();
 
     light_sensor_subscriber_ = getNodeHandle().subscribe<raspicat::LightSensorValues>(
         "lightsensors", 10, [&](const auto& msg) {
