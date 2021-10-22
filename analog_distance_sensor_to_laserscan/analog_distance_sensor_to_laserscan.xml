@@ -1,0 +1,6 @@
+<library path="lib/libanalog_distance_sensor_to_laserscan">
+  <class
+    name="analog_distance_sensor_to_laserscan/analog_distance_sensor_to_laserscan"
+    type="analog_distance_sensor_to_laserscan::AnalogDistanceSensorToLaserscan"
+    base_class_type="nodelet::Nodelet"/>
+</library>
