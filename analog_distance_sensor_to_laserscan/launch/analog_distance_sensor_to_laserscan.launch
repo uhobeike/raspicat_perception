@@ -1,0 +1,18 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="nodelet" default="true"/>
+  
+  <group if="$(arg nodelet)">
+    <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" output="screen"/>
+    
+    <node pkg="nodelet" type="nodelet" name="test"
+      args="load analog_distance_sensor_to_laserscan/analog_distance_sensor_to_laserscan nodelet_manager"
+      output="screen"/>
+  </group>
+
+  <group unless="$(arg nodelet)">
+    <node pkg="nodelet" type="nodelet" name="test"
+      args="standalone analog_distance_sensor_to_laserscan/analog_distance_sensor_to_laserscan"
+      output="screen"/>
+  </group>
+</launch>

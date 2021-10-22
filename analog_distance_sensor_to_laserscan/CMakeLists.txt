@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(analog_distance_sensor_to_laserscan)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+set(CMAKE_CXX_FLAGS "-std=c++14 -O3 ${CMAKE_CXX_FLAGS}")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -10,6 +10,8 @@ project(analog_distance_sensor_to_laserscan)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
+  nodelet
+  pluginlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -29,9 +31,30 @@ find_package(catkin REQUIRED COMPONENTS
 ###################################
 ## catkin specific configuration ##
 ###################################
+catkin_package(
+  CATKIN_DEPENDS 
+    pluginlib
+)
 
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
 
 ###########
 ## Build ##
 ###########
+add_library(analog_distance_sensor_to_laserscan
+  src/analog_distance_sensor_to_laserscan_node.cpp
+)
 
+target_link_libraries(analog_distance_sensor_to_laserscan
+  ${catkin_LIBRARIES}
+)
+
+#############
+## Install ##
+#############
+install(FILES analog_distance_sensor_to_laserscan.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
