@@ -19,42 +19,44 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
  private:
   ros::Publisher ls_pub_, lf_pub_, rf_pub_, rs_pub_;
   ros::Subscriber light_sensor_subscriber_;
+  ros::Time initial_time_, latest_sub_time_;
   ros::Timer timer_;
 
   boost::mutex connect_mutex_;
 
   // ROS Parameters
   std::string ls_frame_id_, lf_frame_id_, rf_frame_id_, rs_frame_id_;
-  int analog_hight_noise_th_, analog_max_th_, analog_min_th_;
-  double tolerance_;
+  int analog_hight_noise_th_, analog_max_th_, analog_min_th_, analog_error_value_;
+  double sub_tolerance_;
+  bool use_observation_source_;
 
-  raspicat::LightSensorValues old_msg_;
+  // raspicat::LightSensorValues old_msg_;
 
-  inline auto saveAnalogValue(raspicat::LightSensorValues& new_msg)
-  {
-    raspicat::LightSensorValues no_data;
-    if (checkInvalidValue(new_msg.left_side))
-      old_msg_.left_side = new_msg.left_side;
-    else
-      old_msg_.left_side = no_data.left_side;
+  // inline auto saveAnalogValue(raspicat::LightSensorValues& in_scan)
+  // {
+  //   raspicat::LightSensorValues no_data;
+  //   if (checkInvalidValue(in_scan.left_side))
+  //     old_msg_.left_side = in_scan.left_side;
+  //   else
+  //     old_msg_.left_side = no_data.left_side;
 
-    if (checkInvalidValue(new_msg.left_forward))
-      old_msg_.left_forward = new_msg.left_forward;
-    else
-      old_msg_.left_forward = no_data.left_forward;
+  //   if (checkInvalidValue(in_scan.left_forward))
+  //     old_msg_.left_forward = in_scan.left_forward;
+  //   else
+  //     old_msg_.left_forward = no_data.left_forward;
 
-    if (checkInvalidValue(new_msg.right_forward))
-      old_msg_.right_forward = new_msg.right_forward;
-    else
-      old_msg_.right_forward = no_data.right_forward;
+  //   if (checkInvalidValue(in_scan.right_forward))
+  //     old_msg_.right_forward = in_scan.right_forward;
+  //   else
+  //     old_msg_.right_forward = no_data.right_forward;
 
-    if (checkInvalidValue(new_msg.right_side))
-      old_msg_.right_side = new_msg.right_side;
-    else
-      old_msg_.right_side = no_data.right_side;
-  }
+  //   if (checkInvalidValue(in_scan.right_side))
+  //     old_msg_.right_side = in_scan.right_side;
+  //   else
+  //     old_msg_.right_side = no_data.right_side;
+  // }
 
-  inline auto removalHighNoise(raspicat::LightSensorValues& new_msg) { new_msg = old_msg_; }
+  // inline auto removalHighNoise(raspicat::LightSensorValues& in_scan) { in_scan = old_msg_; }
 
   inline bool checkInvalidValue(int16_t& analog_value)
   {
@@ -63,17 +65,29 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   inline auto convertAnalogToMeter(int16_t& analog_value) { return analog_value * 0.001; }
 
-  inline auto convertAnalogDistanceSensorToLaserscan(double analog_value, std::string& frame_id)
+  inline auto convertAnalogDistanceSensorToLaserscan(int16_t analog_value, std::string& frame_id)
   {
-    sensor_msgs::LaserScan scan_msg;
-    for (auto i = 0; i < 15; i++) scan_msg.ranges.push_back(analog_value);
-    scan_msg.header.frame_id = frame_id;
-    scan_msg.angle_min = -0.1309;
-    scan_msg.angle_max = 0.1309;
-    scan_msg.range_min = 0.1;
-    scan_msg.range_max = 4.0;
-    scan_msg.angle_increment = 0.0174533;
-    return scan_msg;
+    latest_sub_time_ = ros::Time::now();
+
+    sensor_msgs::LaserScan out_scan;
+    if (checkInvalidValue(analog_value))
+    {
+      for (auto i = 0; i < 15; i++) out_scan.ranges.push_back(convertAnalogToMeter(analog_value));
+    }
+    else
+      for (auto i = 0; i < 15; i++) out_scan.ranges.push_back(analog_error_value_);
+
+    out_scan.header.frame_id = frame_id;
+    out_scan.header.stamp.sec = ros::Time::now().toSec() - initial_time_.toSec();
+    out_scan.header.stamp.nsec = ros::Time::now().nsec - initial_time_.nsec;
+    out_scan.scan_time = 0.1;
+    out_scan.time_increment = 0.00666;
+    out_scan.angle_min = -0.1309;
+    out_scan.angle_max = 0.1309;
+    out_scan.range_min = 0.1;
+    out_scan.range_max = 4.0;
+    out_scan.angle_increment = 0.0174533;
+    return out_scan;
   }
 
   inline auto publishScan(sensor_msgs::LaserScan ls_scan, sensor_msgs::LaserScan lf_scan,
@@ -85,7 +99,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     rs_pub_.publish(rs_scan);
   }
 
-  void Initpub()
+  void initPub()
   {
     ls_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("/ls_scan", 1);
     lf_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("/lf_scan", 1);
@@ -93,7 +107,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     rs_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("/rs_scan", 1);
   }
 
-  void setRosParam()
+  void setParam()
   {
     getPrivateNodeHandle().param("left_side_usensor_frame_id", ls_frame_id_,
                                  std::string("left_side_usensor_link"));
@@ -103,9 +117,23 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
                                  std::string("right_front_usensor_link"));
     getPrivateNodeHandle().param("right_side_usensor_frame_id", rs_frame_id_,
                                  std::string("right_side_usensor_link"));
-    // getPrivateNodeHandle().param("usensor_hight_noise_threshold", analog_hight_noise_th_, 4000);
     getPrivateNodeHandle().param("usensor_max_threshold", analog_max_th_, 500);
     getPrivateNodeHandle().param("usensor_min_threshold", analog_min_th_, 100);
+    getPrivateNodeHandle().param("usensor_error_value", analog_error_value_, 5000);
+    getPrivateNodeHandle().param("use_observation_source", use_observation_source_, false);
+    getPrivateNodeHandle().param("usensor_topic_receive_tolerance", sub_tolerance_, 1.0);
+    // getPrivateNodeHandle().param("usensor_hight_noise_threshold", analog_hight_noise_th_, 4000);
+  }
+
+  void initTimerCb()
+  {
+    timer_ = getNodeHandle().createTimer(ros::Duration(0.1), [&](auto&) {
+      getPrivateNodeHandle().getParam("/move_base/local_costmap/obstacles_layer/raytrace_range",
+                                      analog_error_value_);
+      if ((ros::Time::now().toSec() - latest_sub_time_.toSec()) > sub_tolerance_)
+        ROS_WARN("Not receiving /lightsensors within %f seconds. It actually takes %f seconds.",
+                 sub_tolerance_, (ros::Time::now().toSec() - latest_sub_time_.toSec()));
+    });
   }
 
   virtual void onInit()
@@ -113,25 +141,25 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     boost::mutex::scoped_lock lock(connect_mutex_);
     ROS_INFO("AnalogDistanceSensorToLaserscan nodelet start........");
 
-    Initpub();
-    setRosParam();
+    initial_time_ = ros::Time::now();
+    latest_sub_time_ = ros::Time::now();
+
+    initPub();
+    setParam();
+    if (use_observation_source_) initTimerCb();
 
     light_sensor_subscriber_ = getNodeHandle().subscribe<raspicat::LightSensorValues>(
         "/lightsensors", 10, [&](const auto& msg) {
-          raspicat::LightSensorValues new_msg;
-          new_msg = *msg;
+          raspicat::LightSensorValues in_scan;
+          in_scan = *msg;
 
-          saveAnalogValue(new_msg);
-          removalHighNoise(new_msg);
+          // saveAnalogValue(in_scan);
+          // removalHighNoise(in_scan);
 
-          publishScan(convertAnalogDistanceSensorToLaserscan(
-                          convertAnalogToMeter(new_msg.left_side), ls_frame_id_),
-                      convertAnalogDistanceSensorToLaserscan(
-                          convertAnalogToMeter(new_msg.left_forward), lf_frame_id_),
-                      convertAnalogDistanceSensorToLaserscan(
-                          convertAnalogToMeter(new_msg.right_forward), rf_frame_id_),
-                      convertAnalogDistanceSensorToLaserscan(
-                          convertAnalogToMeter(new_msg.right_side), rs_frame_id_));
+          publishScan(convertAnalogDistanceSensorToLaserscan(in_scan.left_side, ls_frame_id_),
+                      convertAnalogDistanceSensorToLaserscan(in_scan.left_forward, lf_frame_id_),
+                      convertAnalogDistanceSensorToLaserscan(in_scan.right_forward, rf_frame_id_),
+                      convertAnalogDistanceSensorToLaserscan(in_scan.right_side, rs_frame_id_));
         });
   }
 };

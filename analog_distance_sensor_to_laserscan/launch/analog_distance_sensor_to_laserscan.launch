@@ -2,12 +2,14 @@
   <!-- Arguments -->
   <arg name="nodelet" default="true"/>
 
-  <arg name="left_side_usensor_frame_id"    default="left_side_usensor_link"/>
-  <arg name="left_front_usensor_frame_id"   default="left_front_usensor_link"/>
-  <arg name="right_front_usensor_frame_id"  default="right_front_usensor_link"/>
-  <arg name="right_side_usensor_frame_id"   default="right_side_usensor_link"/>
-  <arg name="usensor_max_threshold"         default="250"/>
-  <arg name="usensor_min_threshold"         default="30"/>
+  <arg name="left_side_usensor_frame_id"        default="left_side_usensor_link"/>
+  <arg name="left_front_usensor_frame_id"       default="left_front_usensor_link"/>
+  <arg name="right_front_usensor_frame_id"      default="right_front_usensor_link"/>
+  <arg name="right_side_usensor_frame_id"       default="right_side_usensor_link"/>
+  <arg name="usensor_max_threshold"             default="250"/>
+  <arg name="usensor_min_threshold"             default="30"/>
+  <arg name="use_observation_source"            default="true"/>
+  <arg name="usensor_topic_receive_tolerance"   default="1.0"/>
 
   <!-- nodelet -->
   <group if="$(arg nodelet)">
@@ -16,12 +18,14 @@
     <node pkg="nodelet" type="nodelet" name="analog_distance_sensor_to_laserscan_nodelet"
       args="load analog_distance_sensor_to_laserscan/analog_distance_sensor_to_laserscan nodelet_manager"
       output="screen">
-      <param name="left_side_usensor_frame_id"      value="$(arg left_side_usensor_frame_id)"/>
-      <param name="left_front_usensor_frame_id"     value="$(arg left_front_usensor_frame_id)"/>
-      <param name="right_front_usensor_frame_id"    value="$(arg right_front_usensor_frame_id)"/>
-      <param name="right_side_usensor_frame_id"     value="$(arg right_side_usensor_frame_id)"/>
-      <param name="usensor_max_threshold"          value="$(arg usensor_max_threshold)"/>
-      <param name="usensor_min_threshold"          value="$(arg usensor_min_threshold)"/>
+      <param name="left_side_usensor_frame_id"        value="$(arg left_side_usensor_frame_id)"/>
+      <param name="left_front_usensor_frame_id"       value="$(arg left_front_usensor_frame_id)"/>
+      <param name="right_front_usensor_frame_id"      value="$(arg right_front_usensor_frame_id)"/>
+      <param name="right_side_usensor_frame_id"       value="$(arg right_side_usensor_frame_id)"/>
+      <param name="usensor_max_threshold"             value="$(arg usensor_max_threshold)"/>
+      <param name="usensor_min_threshold"             value="$(arg usensor_min_threshold)"/>
+      <param name="use_observation_source"            value="$(arg use_observation_source)"/>
+      <param name="usensor_topic_receive_tolerance"   value="$(arg usensor_topic_receive_tolerance)"/>
     </node>
   </group>
   
@@ -30,12 +34,14 @@
     <node pkg="nodelet" type="nodelet" name="analog_distance_sensor_to_laserscan_node"
       args="standalone analog_distance_sensor_to_laserscan/analog_distance_sensor_to_laserscan"
       output="screen">
-      <param name="left_side_usensor_frame_id"      value="$(arg left_side_usensor_frame_id)"/>
-      <param name="left_front_usensor_frame_id"     value="$(arg left_front_usensor_frame_id)"/>
-      <param name="right_front_usensor_frame_id"    value="$(arg right_front_usensor_frame_id)"/>
-      <param name="right_side_usensor_frame_id"     value="$(arg right_side_usensor_frame_id)"/>
-      <param name="usensor_max_threshold"          value="$(arg usensor_max_threshold)"/>
-      <param name="usensor_min_threshold"          value="$(arg usensor_min_threshold)"/>
+      <param name="left_side_usensor_frame_id"        value="$(arg left_side_usensor_frame_id)"/>
+      <param name="left_front_usensor_frame_id"       value="$(arg left_front_usensor_frame_id)"/>
+      <param name="right_front_usensor_frame_id"      value="$(arg right_front_usensor_frame_id)"/>
+      <param name="right_side_usensor_frame_id"       value="$(arg right_side_usensor_frame_id)"/>
+      <param name="usensor_max_threshold"             value="$(arg usensor_max_threshold)"/>
+      <param name="usensor_min_threshold"             value="$(arg usensor_min_threshold)"/>
+      <param name="use_observation_source"            value="$(arg use_observation_source)"/>
+      <param name="usensor_topic_receive_tolerance"   value="$(arg usensor_topic_receive_tolerance)"/>
     </node>
   </group>
 </launch>
