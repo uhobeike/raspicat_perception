@@ -25,7 +25,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   // ROS Parameters
   std::string ls_frame_id_, lf_frame_id_, rf_frame_id_, rs_frame_id_;
-  int analog_hight_noise_th_;
+  int analog_hight_noise_th_, analog_max_th_, analog_min_th_;
   double tolerance_;
 
   raspicat::LightSensorValues old_msg_;
@@ -42,7 +42,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   inline bool checkInvalidValue(int16_t& analog_value)
   {
-    return (analog_value >= analog_hight_noise_th_) ? false : true;
+    return (analog_value > analog_max_th_ && analog_value < analog_min_th_) ? false : true;
   }
 
   inline auto convertAnalogToMeter(int16_t& analog_value) { return analog_value * 0.001; }
@@ -82,7 +82,9 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
                                  std::string("right_front_usensor_link"));
     getPrivateNodeHandle().param("right_side_usensor_frame_id", rs_frame_id_,
                                  std::string("right_side_usensor_link"));
-    getPrivateNodeHandle().param("usensor_hight_noise_threshold", analog_hight_noise_th_, 4000);
+    // getPrivateNodeHandle().param("usensor_hight_noise_threshold", analog_hight_noise_th_, 4000);
+    getPrivateNodeHandle().param("usensor_max_threshold", analog_max_th_, 500);
+    getPrivateNodeHandle().param("usensor_min_threshold", analog_min_th_, 300);
   }
 
   virtual void onInit()
