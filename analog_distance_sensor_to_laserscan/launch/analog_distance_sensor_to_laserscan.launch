@@ -6,7 +6,8 @@
   <arg name="left_front_usensor_frame_id"   default="left_front_usensor_link"/>
   <arg name="right_front_usensor_frame_id"  default="right_front_usensor_link"/>
   <arg name="right_side_usensor_frame_id"   default="right_side_usensor_link"/>
-  <arg name="usensor_hight_noise_threshold" default="4000"/>
+  <arg name="usensor_max_threshold"        default="500"/>
+  <arg name="usensor_min_threshold"        default="300"/>
 
   <!-- nodelet -->
   <group if="$(arg nodelet)">
@@ -19,7 +20,8 @@
       <param name="left_front_usensor_frame_id"     value="$(arg left_front_usensor_frame_id)"/>
       <param name="right_front_usensor_frame_id"    value="$(arg right_front_usensor_frame_id)"/>
       <param name="right_side_usensor_frame_id"     value="$(arg right_side_usensor_frame_id)"/>
-      <param name="usensor_hight_noise_threshold"   value="$(arg usensor_hight_noise_threshold)"/>
+      <param name="usensor_max_threshold"          value="$(arg usensor_max_threshold)"/>
+      <param name="usensor_min_threshold"          value="$(arg usensor_min_threshold)"/>
     </node>
   </group>
   
@@ -32,7 +34,8 @@
       <param name="left_front_usensor_frame_id"     value="$(arg left_front_usensor_frame_id)"/>
       <param name="right_front_usensor_frame_id"    value="$(arg right_front_usensor_frame_id)"/>
       <param name="right_side_usensor_frame_id"     value="$(arg right_side_usensor_frame_id)"/>
-      <param name="usensor_hight_noise_threshold"   value="$(arg usensor_hight_noise_threshold)"/>
+      <param name="usensor_max_threshold"          value="$(arg usensor_max_threshold)"/>
+      <param name="usensor_min_threshold"          value="$(arg usensor_min_threshold)"/>
     </node>
   </group>
 </launch>
