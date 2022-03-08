@@ -30,34 +30,6 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
   double sub_tolerance_;
   bool use_observation_source_;
 
-  // raspicat::LightSensorValues old_msg_;
-
-  // inline auto saveAnalogValue(raspicat::LightSensorValues& in_scan)
-  // {
-  //   raspicat::LightSensorValues no_data;
-  //   if (checkInvalidValue(in_scan.left_side))
-  //     old_msg_.left_side = in_scan.left_side;
-  //   else
-  //     old_msg_.left_side = no_data.left_side;
-
-  //   if (checkInvalidValue(in_scan.left_forward))
-  //     old_msg_.left_forward = in_scan.left_forward;
-  //   else
-  //     old_msg_.left_forward = no_data.left_forward;
-
-  //   if (checkInvalidValue(in_scan.right_forward))
-  //     old_msg_.right_forward = in_scan.right_forward;
-  //   else
-  //     old_msg_.right_forward = no_data.right_forward;
-
-  //   if (checkInvalidValue(in_scan.right_side))
-  //     old_msg_.right_side = in_scan.right_side;
-  //   else
-  //     old_msg_.right_side = no_data.right_side;
-  // }
-
-  // inline auto removalHighNoise(raspicat::LightSensorValues& in_scan) { in_scan = old_msg_; }
-
   inline bool checkInvalidValue(int16_t& analog_value)
   {
     return (analog_value < analog_max_th_ && analog_value > analog_min_th_) ? true : false;
@@ -122,7 +94,6 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     getPrivateNodeHandle().param("usensor_error_value", analog_error_value_, 5000);
     getPrivateNodeHandle().param("use_observation_source", use_observation_source_, false);
     getPrivateNodeHandle().param("usensor_topic_receive_tolerance", sub_tolerance_, 1.0);
-    // getPrivateNodeHandle().param("usensor_hight_noise_threshold", analog_hight_noise_th_, 4000);
   }
 
   void initTimerCb()
@@ -152,9 +123,6 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
         "/lightsensors", 10, [&](const auto& msg) {
           raspicat::LightSensorValues in_scan;
           in_scan = *msg;
-
-          // saveAnalogValue(in_scan);
-          // removalHighNoise(in_scan);
 
           publishScan(convertAnalogDistanceSensorToLaserscan(in_scan.left_side, ls_frame_id_),
                       convertAnalogDistanceSensorToLaserscan(in_scan.left_forward, lf_frame_id_),
