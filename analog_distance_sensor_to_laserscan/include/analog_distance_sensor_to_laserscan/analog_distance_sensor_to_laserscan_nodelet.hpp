@@ -32,17 +32,33 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   inline auto saveAnalogValue(raspicat::LightSensorValues& new_msg)
   {
-    if (checkInvalidValue(new_msg.left_side)) old_msg_.left_side = new_msg.left_side;
-    if (checkInvalidValue(new_msg.left_forward)) old_msg_.left_forward = new_msg.left_forward;
-    if (checkInvalidValue(new_msg.right_forward)) old_msg_.right_forward = new_msg.right_forward;
-    if (checkInvalidValue(new_msg.right_side)) old_msg_.right_side = new_msg.right_side;
+    raspicat::LightSensorValues no_data;
+    if (checkInvalidValue(new_msg.left_side))
+      old_msg_.left_side = new_msg.left_side;
+    else
+      old_msg_.left_side = no_data.left_side;
+
+    if (checkInvalidValue(new_msg.left_forward))
+      old_msg_.left_forward = new_msg.left_forward;
+    else
+      old_msg_.left_forward = no_data.left_forward;
+
+    if (checkInvalidValue(new_msg.right_forward))
+      old_msg_.right_forward = new_msg.right_forward;
+    else
+      old_msg_.right_forward = no_data.right_forward;
+
+    if (checkInvalidValue(new_msg.right_side))
+      old_msg_.right_side = new_msg.right_side;
+    else
+      old_msg_.right_side = no_data.right_side;
   }
 
   inline auto removalHighNoise(raspicat::LightSensorValues& new_msg) { new_msg = old_msg_; }
 
   inline bool checkInvalidValue(int16_t& analog_value)
   {
-    return (analog_value > analog_max_th_ && analog_value < analog_min_th_) ? false : true;
+    return (analog_value < analog_max_th_ && analog_value > analog_min_th_) ? true : false;
   }
 
   inline auto convertAnalogToMeter(int16_t& analog_value) { return analog_value * 0.001; }
@@ -50,8 +66,13 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
   inline auto convertAnalogDistanceSensorToLaserscan(double analog_value, std::string& frame_id)
   {
     sensor_msgs::LaserScan scan_msg;
-    scan_msg.ranges.push_back(analog_value);
+    for (auto i = 0; i < 15; i++) scan_msg.ranges.push_back(analog_value);
     scan_msg.header.frame_id = frame_id;
+    scan_msg.angle_min = -0.1309;
+    scan_msg.angle_max = 0.1309;
+    scan_msg.range_min = 0.1;
+    scan_msg.range_max = 4.0;
+    scan_msg.angle_increment = 0.0174533;
     return scan_msg;
   }
 
@@ -66,10 +87,10 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   void Initpub()
   {
-    ls_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("ls_scan", 1);
-    lf_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("lf_scan", 1);
-    rf_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("rf_scan", 1);
-    rs_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("rs_scan", 1);
+    ls_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("/ls_scan", 1);
+    lf_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("/lf_scan", 1);
+    rf_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("/rf_scan", 1);
+    rs_pub_ = getNodeHandle().advertise<sensor_msgs::LaserScan>("/rs_scan", 1);
   }
 
   void setRosParam()
@@ -84,7 +105,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
                                  std::string("right_side_usensor_link"));
     // getPrivateNodeHandle().param("usensor_hight_noise_threshold", analog_hight_noise_th_, 4000);
     getPrivateNodeHandle().param("usensor_max_threshold", analog_max_th_, 500);
-    getPrivateNodeHandle().param("usensor_min_threshold", analog_min_th_, 300);
+    getPrivateNodeHandle().param("usensor_min_threshold", analog_min_th_, 100);
   }
 
   virtual void onInit()
@@ -96,7 +117,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     setRosParam();
 
     light_sensor_subscriber_ = getNodeHandle().subscribe<raspicat::LightSensorValues>(
-        "lightsensors", 10, [&](const auto& msg) {
+        "/lightsensors", 10, [&](const auto& msg) {
           raspicat::LightSensorValues new_msg;
           new_msg = *msg;
 

@@ -6,8 +6,8 @@
   <arg name="left_front_usensor_frame_id"   default="left_front_usensor_link"/>
   <arg name="right_front_usensor_frame_id"  default="right_front_usensor_link"/>
   <arg name="right_side_usensor_frame_id"   default="right_side_usensor_link"/>
-  <arg name="usensor_max_threshold"        default="500"/>
-  <arg name="usensor_min_threshold"        default="300"/>
+  <arg name="usensor_max_threshold"         default="250"/>
+  <arg name="usensor_min_threshold"         default="30"/>
 
   <!-- nodelet -->
   <group if="$(arg nodelet)">
