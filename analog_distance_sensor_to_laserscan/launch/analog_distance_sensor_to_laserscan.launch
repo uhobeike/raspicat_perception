@@ -6,9 +6,10 @@
   <arg name="left_front_usensor_frame_id"       default="left_front_usensor_link"/>
   <arg name="right_front_usensor_frame_id"      default="right_front_usensor_link"/>
   <arg name="right_side_usensor_frame_id"       default="right_side_usensor_link"/>
-  <arg name="usensor_max_threshold"             default="250"/>
+  <arg name="usensor_max_threshold"             default="500"/>
   <arg name="usensor_min_threshold"             default="30"/>
-  <arg name="use_observation_source"            default="true"/>
+  <arg name="usensor_error_value"               default="5000.0"/>
+  <arg name="use_observation_source"            default="false"/>
   <arg name="usensor_topic_receive_tolerance"   default="1.0"/>
 
   <!-- nodelet -->
@@ -24,6 +25,7 @@
       <param name="right_side_usensor_frame_id"       value="$(arg right_side_usensor_frame_id)"/>
       <param name="usensor_max_threshold"             value="$(arg usensor_max_threshold)"/>
       <param name="usensor_min_threshold"             value="$(arg usensor_min_threshold)"/>
+      <param name="usensor_error_value"               value="$(arg usensor_error_value)"/>
       <param name="use_observation_source"            value="$(arg use_observation_source)"/>
       <param name="usensor_topic_receive_tolerance"   value="$(arg usensor_topic_receive_tolerance)"/>
     </node>
@@ -40,6 +42,7 @@
       <param name="right_side_usensor_frame_id"       value="$(arg right_side_usensor_frame_id)"/>
       <param name="usensor_max_threshold"             value="$(arg usensor_max_threshold)"/>
       <param name="usensor_min_threshold"             value="$(arg usensor_min_threshold)"/>
+      <param name="usensor_error_value"               value="$(arg usensor_error_value)"/>
       <param name="use_observation_source"            value="$(arg use_observation_source)"/>
       <param name="usensor_topic_receive_tolerance"   value="$(arg usensor_topic_receive_tolerance)"/>
     </node>

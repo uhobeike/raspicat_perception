@@ -26,8 +26,8 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   // ROS Parameters
   std::string ls_frame_id_, lf_frame_id_, rf_frame_id_, rs_frame_id_;
-  int analog_hight_noise_th_, analog_max_th_, analog_min_th_, analog_error_value_;
-  double sub_tolerance_;
+  int analog_hight_noise_th_, analog_max_th_, analog_min_th_;
+  double sub_tolerance_, analog_error_value_;
   bool use_observation_source_;
 
   inline bool checkInvalidValue(int16_t& analog_value)
@@ -47,17 +47,16 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
       for (auto i = 0; i < 15; i++) out_scan.ranges.push_back(convertAnalogToMeter(analog_value));
     }
     else
-      for (auto i = 0; i < 15; i++) out_scan.ranges.push_back(analog_error_value_);
+      for (auto i = 0; i < 15; i++) out_scan.ranges.push_back(analog_error_value_ - 0.01);
 
     out_scan.header.frame_id = frame_id;
-    out_scan.header.stamp.sec = ros::Time::now().toSec() - initial_time_.toSec();
-    out_scan.header.stamp.nsec = ros::Time::now().nsec - initial_time_.nsec;
+    out_scan.header.stamp = ros::Time::now();
     out_scan.scan_time = 0.1;
-    out_scan.time_increment = 0.00666;
+    out_scan.time_increment = 0.000001;
     out_scan.angle_min = -0.1309;
     out_scan.angle_max = 0.1309;
     out_scan.range_min = 0.1;
-    out_scan.range_max = 4.0;
+    out_scan.range_max = 60.0;
     out_scan.angle_increment = 0.0174533;
     return out_scan;
   }
@@ -91,7 +90,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
                                  std::string("right_side_usensor_link"));
     getPrivateNodeHandle().param("usensor_max_threshold", analog_max_th_, 500);
     getPrivateNodeHandle().param("usensor_min_threshold", analog_min_th_, 100);
-    getPrivateNodeHandle().param("usensor_error_value", analog_error_value_, 5000);
+    getPrivateNodeHandle().param("usensor_error_value", analog_error_value_, 5000.0);
     getPrivateNodeHandle().param("use_observation_source", use_observation_source_, false);
     getPrivateNodeHandle().param("usensor_topic_receive_tolerance", sub_tolerance_, 1.0);
   }
