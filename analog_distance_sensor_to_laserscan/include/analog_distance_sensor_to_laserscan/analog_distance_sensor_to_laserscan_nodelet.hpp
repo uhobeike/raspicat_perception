@@ -20,7 +20,7 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
   ros::Publisher ls_pub_, lf_pub_, rf_pub_, rs_pub_;
   ros::Subscriber light_sensor_subscriber_;
   ros::Time initial_time_, latest_sub_time_;
-  ros::Timer timer_;
+  ros::Timer check_move_base_param_timer_, check_sub_lightsensors_timer_;
 
   boost::mutex connect_mutex_;
 
@@ -98,9 +98,12 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
 
   void initTimerCb()
   {
-    timer_ = getNodeHandle().createTimer(ros::Duration(0.1), [&](auto&) {
+    check_move_base_param_timer_ = getNodeHandle().createTimer(ros::Duration(1), [&](auto&) {
       getPrivateNodeHandle().getParam("/move_base/local_costmap/obstacles_layer/raytrace_range",
                                       analog_error_value_);
+    });
+
+    check_sub_lightsensors_timer_ = getNodeHandle().createTimer(ros::Duration(0.1), [&](auto&) {
       if ((ros::Time::now().toSec() - latest_sub_time_.toSec()) > sub_tolerance_)
         ROS_WARN("Not receiving /lightsensors within %f seconds. It actually takes %f seconds.",
                  sub_tolerance_, (ros::Time::now().toSec() - latest_sub_time_.toSec()));
