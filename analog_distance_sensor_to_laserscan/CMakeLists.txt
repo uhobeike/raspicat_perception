@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   nodelet
   pluginlib
-  raspicat
+  raspimouse_msgs
 )
 
 ## System dependencies are found with CMake's conventions

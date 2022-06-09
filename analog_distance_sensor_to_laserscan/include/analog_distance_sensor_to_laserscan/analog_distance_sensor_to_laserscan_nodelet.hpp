@@ -7,7 +7,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <string>
 
-#include "raspicat/LightSensorValues.h"
+#include "raspimouse_msgs/LightSensorValues.h"
 
 namespace analog_distance_sensor_to_laserscan
 {
@@ -121,9 +121,9 @@ class AnalogDistanceSensorToLaserscan : public nodelet::Nodelet
     setParam();
     if (use_observation_source_) initTimerCb();
 
-    light_sensor_subscriber_ = getNodeHandle().subscribe<raspicat::LightSensorValues>(
+    light_sensor_subscriber_ = getNodeHandle().subscribe<raspimouse_msgs::LightSensorValues>(
         "/lightsensors", 10, [&](const auto& msg) {
-          raspicat::LightSensorValues in_scan;
+          raspimouse_msgs::LightSensorValues in_scan;
           in_scan = *msg;
 
           publishScan(convertAnalogDistanceSensorToLaserscan(in_scan.left_side, ls_frame_id_),
